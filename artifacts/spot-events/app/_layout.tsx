@@ -34,7 +34,7 @@ export default function RootLayout() {
     Inter_500Medium,
     Inter_600SemiBold,
     Inter_700Bold,
-    HeadingNow: require('../assets/fonts/HeadingNowTrial-04Regular.ttf'),
+    HeadingNow: require('../assets/fonts/HeadingNowTrial-56Bold.ttf'),
   });
 
   useEffect(() => {
