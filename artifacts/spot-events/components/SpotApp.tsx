@@ -299,7 +299,7 @@ function makeStyles(colors: Palette) {
       fontFamily: 'HeadingNow',
       fontSize: 30,
       lineHeight: 39,
-      letterSpacing: -2.6,
+      letterSpacing: 2.4,
       marginLeft: 12,
     },
     brandTagline: {
@@ -350,7 +350,7 @@ function makeStyles(colors: Palette) {
       color: colors.foreground,
       fontSize: 40,
       lineHeight: 46,
-      letterSpacing: -0.9,
+      letterSpacing: 1.5,
       fontFamily: 'HeadingNow',
     },
     heroSub: {
@@ -390,7 +390,7 @@ function makeStyles(colors: Palette) {
       fontSize: 23,
       lineHeight: 29,
       fontFamily: 'HeadingNow',
-      letterSpacing: -0.5,
+      letterSpacing: 1.25,
     },
     sectionHint: {
       color: colors.mutedForeground,
@@ -467,7 +467,7 @@ function makeStyles(colors: Palette) {
       fontSize: 18,
       lineHeight: 24,
       fontFamily: 'HeadingNow',
-      letterSpacing: -0.3,
+      letterSpacing: 0.8,
     },
     eventMetaRow: {
       flexDirection: 'row',
@@ -589,7 +589,7 @@ function makeStyles(colors: Palette) {
       color: colors.foreground,
       fontSize: 35,
       lineHeight: 42,
-      letterSpacing: -0.8,
+      letterSpacing: 1.5,
       fontFamily: 'HeadingNow',
     },
     mapHeader: { gap: 7 },
@@ -740,6 +740,7 @@ function makeStyles(colors: Palette) {
       color: colors.foreground,
       fontSize: 23,
       fontFamily: 'HeadingNow',
+      letterSpacing: 1.2,
     },
     statLabel: {
       color: colors.mutedForeground,
@@ -823,7 +824,7 @@ function makeStyles(colors: Palette) {
       fontSize: 26,
       lineHeight: 33,
       fontFamily: 'HeadingNow',
-      letterSpacing: -0.6,
+      letterSpacing: 1.25,
     },
     modalSubTitle: {
       color: colors.mutedForeground,
@@ -970,7 +971,7 @@ function makeStyles(colors: Palette) {
       color: colors.foreground,
       fontSize: 30,
       lineHeight: 37,
-      letterSpacing: -0.7,
+      letterSpacing: 1.5,
       fontFamily: 'HeadingNow',
     },
     detailActionRow: { flexDirection: 'row', gap: 10 },
