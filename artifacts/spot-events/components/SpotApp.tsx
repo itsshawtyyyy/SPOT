@@ -49,6 +49,12 @@ type DemoUser = {
   isAdmin: boolean;
 };
 
+type ReactionEmoji = '❤️' | '🔥' | '😍' | '👏';
+type ReactionsByEvent = Record<
+  string,
+  Partial<Record<ReactionEmoji, string[]>>
+>;
+
 type EventDraft = {
   title: string;
   place: string;
@@ -62,12 +68,14 @@ type StoredState = {
   events?: SpotEvent[];
   savedIds?: string[];
   user?: DemoUser | null;
+  reactions?: ReactionsByEvent;
 };
 
 type Palette = ReturnType<typeof useColors>;
 
 const STORAGE_KEY = 'spot-local-state-v1';
 const CATEGORIES: Category[] = ['Party', 'Concerti', 'Mostre', 'Aperitivi'];
+const REACTION_EMOJIS: ReactionEmoji[] = ['❤️', '🔥', '😍', '👏'];
 const COVER_OPTIONS: CoverId[] = [
   'cover-concert',
   'cover-aperitivo',
@@ -238,6 +246,36 @@ function formatDate(value: string) {
     })
     .replace('.', '');
   return `${day} · ${time}`;
+}
+
+function formatEventDay(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  const today = new Date();
+  const tomorrow = new Date();
+  tomorrow.setDate(today.getDate() + 1);
+  const sameDay = (left: Date, right: Date) =>
+    left.getDate() === right.getDate() &&
+    left.getMonth() === right.getMonth() &&
+    left.getFullYear() === right.getFullYear();
+  if (sameDay(date, today)) return 'Oggi';
+  if (sameDay(date, tomorrow)) return 'Domani';
+  return date
+    .toLocaleDateString('it-IT', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+    })
+    .replace('.', '');
+}
+
+function formatEventTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Orario da definire';
+  return date.toLocaleTimeString('it-IT', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 function categoryColor(category: Category, colors: Palette) {
@@ -454,7 +492,9 @@ function makeStyles(colors: Palette) {
       borderColor: 'rgba(255,255,255,0.12)',
     },
     imageActionColumn: { gap: 8 },
-    eventInfo: { padding: 15, gap: 11 },
+    eventInfo: { padding: 15, gap: 12 },
+    eventDetailsButton: { gap: 10 },
+    eventMetaStack: { gap: 6 },
     eventTitle: {
       color: colors.foreground,
       fontSize: 18,
@@ -485,6 +525,30 @@ function makeStyles(colors: Palette) {
       fontSize: 13,
       lineHeight: 20,
       fontFamily: 'Inter_400Regular',
+    },
+    reactionRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    reactionButton: {
+      minWidth: 58,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 5,
+      paddingHorizontal: 9,
+      paddingVertical: 6,
+      borderRadius: 10,
+      backgroundColor: colors.secondary,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    reactionEmoji: { fontSize: 15, lineHeight: 18 },
+    reactionCount: {
+      color: colors.mutedForeground,
+      fontSize: 11,
+      fontFamily: 'Inter_600SemiBold',
     },
     sectionBlock: { gap: 0 },
     navBar: {
@@ -982,9 +1046,12 @@ type EventCardProps = {
   styles: ReturnType<typeof makeStyles>;
   isSaved: boolean;
   isAdmin: boolean;
+  reactions: Partial<Record<ReactionEmoji, string[]>>;
+  currentUserEmail: string | null;
   onOpen: () => void;
   onSave: () => void;
   onEdit: () => void;
+  onReact: (emoji: ReactionEmoji) => void;
 };
 
 function EventCard({
@@ -993,9 +1060,12 @@ function EventCard({
   styles,
   isSaved,
   isAdmin,
+  reactions,
+  currentUserEmail,
   onOpen,
   onSave,
   onEdit,
+  onReact,
 }: EventCardProps) {
   const accent = categoryColor(item.category, colors);
   return (
@@ -1070,28 +1140,87 @@ function EventCard({
             )}
           </View>
       </View>
-      <Pressable
-        style={({ pressed }) => [
-          styles.eventInfo,
-          pressed && { opacity: 0.75 },
-        ]}
-        onPress={onOpen}
-        accessibilityRole="button"
-        accessibilityLabel={`Apri dettagli di ${item.title}`}
-      >
-        <Text style={styles.eventTitle} numberOfLines={2}>
-          {item.title}
-        </Text>
-        <View style={styles.eventMetaRow}>
-          <Feather name="calendar" size={13} color={colors.primary} />
-          <Text style={styles.eventMetaText}>{formatDate(item.date)}</Text>
-          <View style={styles.metaSeparator} />
-          <Feather name="map-pin" size={13} color={colors.mutedForeground} />
-          <Text style={styles.eventMetaText} numberOfLines={1}>
-            {item.place}
+      <View style={styles.eventInfo}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.eventDetailsButton,
+            pressed && { opacity: 0.75 },
+          ]}
+          onPress={onOpen}
+          accessibilityRole="button"
+          accessibilityLabel={`Apri dettagli di ${item.title}`}
+        >
+          <Text style={styles.eventTitle} numberOfLines={2}>
+            {item.title}
           </Text>
+          <View style={styles.eventMetaStack}>
+            <View style={styles.eventMetaRow}>
+              <Feather name="calendar" size={13} color={colors.primary} />
+              <Text style={styles.eventMetaText}>
+                {formatEventDay(item.date)}
+              </Text>
+              <View style={styles.metaSeparator} />
+              <Feather name="clock" size={13} color={colors.primary} />
+              <Text style={styles.eventMetaText}>
+                {formatEventTime(item.date)}
+              </Text>
+            </View>
+            <View style={styles.eventMetaRow}>
+              <Feather
+                name="map-pin"
+                size={13}
+                color={colors.mutedForeground}
+              />
+              <Text style={styles.eventMetaText}>{item.place}</Text>
+            </View>
+          </View>
+          <Text style={styles.eventDescription} numberOfLines={3}>
+            {item.description}
+          </Text>
+        </Pressable>
+        <View style={styles.reactionRow}>
+          {REACTION_EMOJIS.map((emoji, index) => {
+            const users = reactions[emoji] ?? [];
+            const count = users.length;
+            const isSelected = Boolean(
+              currentUserEmail && users.includes(currentUserEmail),
+            );
+            return (
+              <Pressable
+                key={emoji}
+                style={({ pressed }) => [
+                  styles.reactionButton,
+                  isSelected && {
+                    backgroundColor: colors.primary,
+                    borderColor: colors.primary,
+                  },
+                  pressed && { opacity: 0.72 },
+                ]}
+                onPress={() => onReact(emoji)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: isSelected }}
+                accessibilityLabel={`${isSelected ? 'Rimuovi' : 'Aggiungi'} reazione ${emoji}. ${count} ${count === 1 ? 'reazione' : 'reazioni'}`}
+                accessibilityHint={
+                  currentUserEmail
+                    ? undefined
+                    : 'Accedi per aggiungere la tua reazione.'
+                }
+                testID={`reaction-${item.id}-${index}`}
+              >
+                <Text style={styles.reactionEmoji}>{emoji}</Text>
+                <Text
+                  style={[
+                    styles.reactionCount,
+                    isSelected && { color: colors.primaryForeground },
+                  ]}
+                >
+                  {count}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
-      </Pressable>
+      </View>
     </View>
   );
 }
@@ -1148,13 +1277,20 @@ export default function SpotApp() {
   const [events, setEvents] = useState<SpotEvent[]>([]);
   const [savedIds, setSavedIds] = useState<string[]>([]);
   const [user, setUser] = useState<DemoUser | null>(null);
+  const [reactions, setReactions] = useState<ReactionsByEvent>({});
   const [isLoaded, setIsLoaded] = useState(false);
   const [storageError, setStorageError] = useState(false);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<CategoryFilter>('Tutti');
   const [modal, setModal] = useState<ModalType>(null);
-  const [loginIntent, setLoginIntent] = useState<'create' | 'profile'>('create');
+  const [loginIntent, setLoginIntent] = useState<
+    'create' | 'profile' | 'reaction'
+  >('create');
   const [loginEmail, setLoginEmail] = useState('');
+  const [pendingReaction, setPendingReaction] = useState<{
+    eventId: string;
+    emoji: ReactionEmoji;
+  } | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [formDraft, setFormDraft] = useState<EventDraft>({
@@ -1182,6 +1318,7 @@ export default function SpotApp() {
           );
           setSavedIds(Array.isArray(stored.savedIds) ? stored.savedIds : []);
           setUser(stored.user ?? null);
+          setReactions(stored.reactions ?? {});
         } else {
           setEvents(createMockEvents());
         }
@@ -1205,7 +1342,7 @@ export default function SpotApp() {
       try {
         await AsyncStorage.setItem(
           STORAGE_KEY,
-          JSON.stringify({ events, savedIds, user }),
+          JSON.stringify({ events, savedIds, user, reactions }),
         );
         setStorageError(false);
       } catch {
@@ -1213,7 +1350,7 @@ export default function SpotApp() {
       }
     };
     void save();
-  }, [events, isLoaded, savedIds, user]);
+  }, [events, isLoaded, reactions, savedIds, user]);
 
   const savedSet = useMemo(() => new Set(savedIds), [savedIds]);
   const matchingEvents = useMemo(() => {
@@ -1235,6 +1372,7 @@ export default function SpotApp() {
   const openCreate = () => {
     feedback();
     setFormError('');
+    setPendingReaction(null);
     if (user) {
       setEditingId(null);
       setFormDraft({
@@ -1253,8 +1391,15 @@ export default function SpotApp() {
   };
 
   const openLogin = () => {
+    setPendingReaction(null);
     setLoginIntent('profile');
     setModal('login');
+  };
+
+  const closeLogin = () => {
+    setModal(null);
+    setFormError('');
+    setPendingReaction(null);
   };
 
   const openDetail = (eventId: string) => {
@@ -1286,6 +1431,40 @@ export default function SpotApp() {
     );
   };
 
+  const toggleEventReaction = (
+    eventId: string,
+    emoji: ReactionEmoji,
+    email: string,
+  ) => {
+    const normalizedEmail = email.trim().toLocaleLowerCase('it-IT');
+    setReactions((current) => {
+      const eventReactions = current[eventId] ?? {};
+      const reactingUsers = eventReactions[emoji] ?? [];
+      const nextUsers = reactingUsers.includes(normalizedEmail)
+        ? reactingUsers.filter((reactingUser) => reactingUser !== normalizedEmail)
+        : [...reactingUsers, normalizedEmail];
+      return {
+        ...current,
+        [eventId]: {
+          ...eventReactions,
+          [emoji]: nextUsers,
+        },
+      };
+    });
+  };
+
+  const reactToEvent = (eventId: string, emoji: ReactionEmoji) => {
+    feedback();
+    if (!user) {
+      setPendingReaction({ eventId, emoji });
+      setLoginIntent('reaction');
+      setFormError('');
+      setModal('login');
+      return;
+    }
+    toggleEventReaction(eventId, emoji, user.email);
+  };
+
   const completeLogin = () => {
     const normalizedEmail = loginEmail.trim().toLocaleLowerCase('it-IT');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
@@ -1301,6 +1480,14 @@ export default function SpotApp() {
     setLoginEmail('');
     setModal(null);
     feedback();
+    if (loginIntent === 'reaction' && pendingReaction) {
+      toggleEventReaction(
+        pendingReaction.eventId,
+        pendingReaction.emoji,
+        normalizedEmail,
+      );
+    }
+    setPendingReaction(null);
     if (loginIntent === 'create') {
       setTimeout(() => {
         setEditingId(null);
@@ -1446,9 +1633,12 @@ export default function SpotApp() {
             styles={styles}
             isSaved={savedSet.has(item.id)}
             isAdmin={Boolean(user?.isAdmin)}
+            reactions={reactions[item.id] ?? {}}
+            currentUserEmail={user?.email ?? null}
             onOpen={() => openDetail(item.id)}
             onSave={() => toggleSaved(item.id)}
             onEdit={() => openEdit(item)}
+            onReact={(emoji) => reactToEvent(item.id, emoji)}
           />
         ))}
       </View>
@@ -2013,18 +2203,12 @@ export default function SpotApp() {
         visible={modal === 'login'}
         transparent
         animationType="fade"
-        onRequestClose={() => {
-          setModal(null);
-          setFormError('');
-        }}
+        onRequestClose={closeLogin}
       >
         <View style={[styles.modalBackdrop, { justifyContent: 'center' }]}>
           <Pressable
             style={styles.modalCloseLayer}
-            onPress={() => {
-              setModal(null);
-              setFormError('');
-            }}
+            onPress={closeLogin}
             accessibilityLabel="Chiudi accesso"
           />
           <KeyboardAwareScrollViewCompat
@@ -2042,10 +2226,7 @@ export default function SpotApp() {
                 </View>
                 <Pressable
                   style={styles.closeButton}
-                  onPress={() => {
-                    setModal(null);
-                    setFormError('');
-                  }}
+                  onPress={closeLogin}
                   accessibilityRole="button"
                   accessibilityLabel="Chiudi"
                 >
@@ -2055,7 +2236,11 @@ export default function SpotApp() {
               <View>
                 <Text style={styles.modalTitle}>Entra in SPOT</Text>
                 <Text style={styles.modalSubTitle}>
-                  Accedi per aggiungere un evento alla città.
+                  {loginIntent === 'reaction'
+                    ? 'Accedi per aggiungere la tua reazione a questo evento.'
+                    : loginIntent === 'create'
+                      ? 'Accedi per aggiungere un evento alla città.'
+                      : 'Accedi per salvare eventi e personalizzare il tuo profilo.'}
                 </Text>
               </View>
               <View style={styles.formGroup}>
@@ -2082,7 +2267,8 @@ export default function SpotApp() {
               <View style={styles.loginDemoCard}>
                 <Feather name="info" size={14} color={colors.accentForeground} />
                 <Text style={styles.loginDemoText}>
-                  Accesso dimostrativo, senza account reale. Per testare gli
+                  Accesso dimostrativo, senza account reale. Profilo e reazioni
+                  sono salvati solo su questo dispositivo. Per testare gli
                   strumenti admin inserisci admin@spot.it.
                 </Text>
               </View>
