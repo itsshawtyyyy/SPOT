@@ -280,35 +280,28 @@ function makeStyles(colors: Palette) {
     },
     topBar: {
       minHeight: 52,
-      flexDirection: 'row',
+      position: 'relative',
       alignItems: 'center',
-      justifyContent: 'space-between',
+      justifyContent: 'center',
     },
-    brandRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-    brandLockup: { width: 105, height: 46, justifyContent: 'center' },
-    brandStarLeft: { position: 'absolute', top: 0, left: 0 },
-    brandStarRight: { position: 'absolute', bottom: 2, right: 3 },
-    brandDot: {
-      width: 10,
-      height: 10,
-      borderRadius: 5,
-      backgroundColor: colors.primary,
+    logoPlaceholder: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.card,
+      overflow: 'hidden',
     },
-    brand: {
-      color: colors.foreground,
-      fontFamily: 'HeadingNow',
-      fontSize: 30,
-      lineHeight: 39,
-      letterSpacing: 2.4,
-      marginLeft: 12,
+    topBarAdminBadge: {
+      position: 'absolute',
+      left: 0,
+      top: 15,
     },
-    brandTagline: {
-      color: colors.mutedForeground,
-      fontFamily: 'Inter_600SemiBold',
-      fontSize: 6,
-      letterSpacing: 2.1,
-      textAlign: 'center',
-      marginTop: -5,
+    topBarAvatar: {
+      position: 'absolute',
+      right: 0,
+      top: 7,
     },
     adminBadge: {
       backgroundColor: colors.accent,
@@ -994,28 +987,6 @@ type EventCardProps = {
   onEdit: () => void;
 };
 
-function BrandLogo({
-  styles,
-  colors,
-}: {
-  styles: ReturnType<typeof makeStyles>;
-  colors: Palette;
-}) {
-  const star = 'M8 0 C8.8 4.5 11.5 7.2 16 8 C11.5 8.8 8.8 11.5 8 16 C7.2 11.5 4.5 8.8 0 8 C4.5 7.2 7.2 4.5 8 0Z';
-  return (
-    <View style={styles.brandLockup} accessible accessibilityLabel="SPOT, What's on?">
-      <Svg width={15} height={15} style={styles.brandStarLeft}>
-        <Path d={star} fill={colors.foreground} />
-      </Svg>
-      <Text style={styles.brand}>SPOT</Text>
-      <Text style={styles.brandTagline}>WHAT'S ON?</Text>
-      <Svg width={10} height={10} viewBox="0 0 16 16" style={styles.brandStarRight}>
-        <Path d={star} fill={colors.primary} />
-      </Svg>
-    </View>
-  );
-}
-
 function EventCard({
   item,
   colors,
@@ -1495,17 +1466,21 @@ export default function SpotApp() {
 
   const renderTopBar = () => (
     <View style={styles.topBar}>
-      <View style={styles.brandRow}>
-        <BrandLogo styles={styles} colors={colors} />
-        {user?.isAdmin && (
-          <View style={styles.adminBadge}>
-            <Text style={styles.adminBadgeText}>ADMIN</Text>
-          </View>
-        )}
-      </View>
+      {user?.isAdmin && (
+        <View style={[styles.adminBadge, styles.topBarAdminBadge]}>
+          <Text style={styles.adminBadgeText}>ADMIN</Text>
+        </View>
+      )}
+      <View
+        style={styles.logoPlaceholder}
+        accessible
+        accessibilityRole="image"
+        accessibilityLabel="Spazio per il logo SPOT"
+      />
       <Pressable
         style={({ pressed }) => [
           styles.avatarButton,
+          styles.topBarAvatar,
           pressed && { opacity: 0.7 },
         ]}
         onPress={() => setActiveScreen('profile')}
@@ -1933,7 +1908,12 @@ export default function SpotApp() {
   if (!isLoaded) {
     return (
       <View style={[styles.centeredPage, { paddingTop: insets.top }]}>
-        <BrandLogo styles={styles} colors={colors} />
+        <View
+          style={styles.logoPlaceholder}
+          accessible
+          accessibilityRole="image"
+          accessibilityLabel="Spazio per il logo SPOT"
+        />
         <ActivityIndicator size="small" color={colors.primary} />
         <Text style={styles.loadingText}>Prepariamo la città…</Text>
       </View>
