@@ -296,7 +296,7 @@ function makeStyles(colors: Palette) {
     },
     brand: {
       color: colors.foreground,
-      fontFamily: 'Lumiare',
+      fontFamily: 'HeadingNow',
       fontSize: 30,
       lineHeight: 39,
       letterSpacing: -2.6,
@@ -351,7 +351,7 @@ function makeStyles(colors: Palette) {
       fontSize: 40,
       lineHeight: 46,
       letterSpacing: -0.9,
-      fontFamily: 'Lumiare',
+      fontFamily: 'HeadingNow',
     },
     heroSub: {
       color: colors.mutedForeground,
@@ -389,7 +389,7 @@ function makeStyles(colors: Palette) {
       color: colors.foreground,
       fontSize: 23,
       lineHeight: 29,
-      fontFamily: 'Lumiare',
+      fontFamily: 'HeadingNow',
       letterSpacing: -0.5,
     },
     sectionHint: {
@@ -466,7 +466,7 @@ function makeStyles(colors: Palette) {
       color: colors.foreground,
       fontSize: 18,
       lineHeight: 24,
-      fontFamily: 'Lumiare',
+      fontFamily: 'HeadingNow',
       letterSpacing: -0.3,
     },
     eventMetaRow: {
@@ -590,7 +590,7 @@ function makeStyles(colors: Palette) {
       fontSize: 35,
       lineHeight: 42,
       letterSpacing: -0.8,
-      fontFamily: 'Lumiare',
+      fontFamily: 'HeadingNow',
     },
     mapHeader: { gap: 7 },
     mapCard: {
@@ -739,7 +739,7 @@ function makeStyles(colors: Palette) {
     statValue: {
       color: colors.foreground,
       fontSize: 23,
-      fontFamily: 'Lumiare',
+      fontFamily: 'HeadingNow',
     },
     statLabel: {
       color: colors.mutedForeground,
@@ -822,7 +822,7 @@ function makeStyles(colors: Palette) {
       color: colors.foreground,
       fontSize: 26,
       lineHeight: 33,
-      fontFamily: 'Lumiare',
+      fontFamily: 'HeadingNow',
       letterSpacing: -0.6,
     },
     modalSubTitle: {
@@ -971,7 +971,7 @@ function makeStyles(colors: Palette) {
       fontSize: 30,
       lineHeight: 37,
       letterSpacing: -0.7,
-      fontFamily: 'Lumiare',
+      fontFamily: 'HeadingNow',
     },
     detailActionRow: { flexDirection: 'row', gap: 10 },
     detailAction: { flex: 1 },

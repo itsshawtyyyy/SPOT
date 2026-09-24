@@ -34,7 +34,7 @@ export default function RootLayout() {
     Inter_500Medium,
     Inter_600SemiBold,
     Inter_700Bold,
-    Lumiare: require('../assets/fonts/Lumiare.otf'),
+    HeadingNow: require('../assets/fonts/HeadingNowTrial-04Regular.ttf'),
   });
 
   useEffect(() => {
